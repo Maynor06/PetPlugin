@@ -1,10 +1,10 @@
 package org.Pet;
 
+import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.manager.PetManager;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Number;
-import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
@@ -25,27 +25,27 @@ public class PetModule implements Behavior, Configurable<PetModule.Config> {
     public static class Config {
         public PetGear defaultModule = PetGear.PASSIVE;
 
-        public  boolean useDefaultModule = true;
+        public boolean useDefaultModule = true;
 
         @Option("Min HP for use combo module")
         public boolean useComboModule = false;
-        public @Number(min = 1, max = 100, step = 5) int min_Hp_Combo = 50;
+        public @Number(min = 1, max = 100) int min_Hp_Combo = 50;
 
         @Option("Min HP for use hp link")
         public boolean useHpLink = false;
-        public @Number(min = 1, max = 100, step = 5) int min_Hp_Link = 40;
+        public @Number(min = 1, max = 100) int min_Hp_Link = 40;
 
         @Option("Min HP for use module repair")
         public boolean useRepairModule = false;
-        public @Number(min = 1, max = 100, step = 5) int min_Repair_Module = 30;
+        public @Number(min = 1, max = 100) int min_Repair_Module = 30;
 
         @Option("Min HP for use defense module")
         public boolean useDefenseModule = false;
-        public @Number(min = 1, max = 100, step = 5) int min_Defense_Module = 25;
+        public @Number(min = 1, max = 100) int min_Defense_Module = 25;
 
         @Option("Min HP for use llama expiatoria")
         public boolean useLlamaExpiratoria = false;
-        public @Number(min = 1, max = 100, step = 5) int min_Llama_Expiratoria = 20;
+        public @Number(min = 1, max = 100) int min_Llama_Expiratoria = 20;
 
     }
 
