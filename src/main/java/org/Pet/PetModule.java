@@ -4,6 +4,7 @@ import com.github.manolo8.darkbot.core.manager.PetManager;
 import eu.darkbot.api.config.ConfigSetting;
 import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Number;
+import eu.darkbot.api.config.annotations.Option;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
@@ -26,20 +27,25 @@ public class PetModule implements Behavior, Configurable<PetModule.Config> {
 
         public  boolean useDefaultModule = true;
 
+        @Option("Min HP for use combo module")
         public boolean useComboModule = false;
-        public @Number(min = 1, max = 100) int minHpCombo = 50;
+        public @Number(min = 1, max = 100, step = 5) int min_Hp_Combo = 50;
 
+        @Option("Min HP for use hp link")
         public boolean useHpLink = false;
-        public @Number(min = 1, max = 100) int minHpLink = 40;
+        public @Number(min = 1, max = 100, step = 5) int min_Hp_Link = 40;
 
+        @Option("Min HP for use module repair")
         public boolean useRepairModule = false;
-        public @Number(min = 1, max = 100) int minRepairModule = 30;
+        public @Number(min = 1, max = 100, step = 5) int min_Repair_Module = 30;
 
+        @Option("Min HP for use defense module")
         public boolean useDefenseModule = false;
-        public @Number(min = 1, max = 100) int minDefenseModule = 25;
+        public @Number(min = 1, max = 100, step = 5) int min_Defense_Module = 25;
 
+        @Option("Min HP for use llama expiatoria")
         public boolean useLlamaExpiratoria = false;
-        public @Number(min = 1, max = 100) int minLlamaExpiratoria = 20;
+        public @Number(min = 1, max = 100, step = 5) int min_Llama_Expiratoria = 20;
 
     }
 
@@ -67,19 +73,19 @@ public class PetModule implements Behavior, Configurable<PetModule.Config> {
         if(!petManager.isActive() ) return;
         PetGear selectedGear = config.defaultModule;
 
-        if(config.useComboModule && hero.getHealth().hpPercent() <= config.minHpCombo ) {
+        if(config.useComboModule && hero.getHealth().hpPercent() <= config.min_Hp_Combo ) {
             petManager.setGear(PetGear.COMBO_REPAIR );
         }
-        else if (config.useHpLink && hero.getHealth().hpPercent() <= config.minHpLink) {
+        else if (config.useHpLink && hero.getHealth().hpPercent() <= config.min_Hp_Link) {
             petManager.setGear(PetGear.HP_LINK);
         }
-        else if (config.useRepairModule && hero.getHealth().hpPercent() <= config.minRepairModule ) {
+        else if (config.useRepairModule && hero.getHealth().hpPercent() <= config.min_Repair_Module ) {
             petManager.setGear(PetGear.REPAIR);
         }
-        else if (config.useDefenseModule && hero.getHealth().hpPercent() <= config.minDefenseModule ) {
+        else if (config.useDefenseModule && hero.getHealth().hpPercent() <= config.min_Defense_Module ) {
             petManager.setGear(PetGear.COMBO_GUARD);
         }
-        else if (config.useLlamaExpiratoria && getSyncPlayerHealth() <= config.minLlamaExpiratoria ){
+        else if (config.useLlamaExpiratoria && getSyncPlayerHealth() <= config.min_Llama_Expiratoria ){
             petManager.setGear(PetGear.SACRIFICIAL);
         }
 
