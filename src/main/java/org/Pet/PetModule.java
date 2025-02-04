@@ -2,6 +2,7 @@ package org.Pet;
 
 import com.github.manolo8.darkbot.core.manager.PetManager;
 import eu.darkbot.api.config.ConfigSetting;
+import eu.darkbot.api.config.annotations.Configuration;
 import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
@@ -19,6 +20,7 @@ public class PetModule implements Behavior, Configurable<PetModule.Config> {
     private Config config;
     private PetGear lastGear;
 
+    @Configuration("pet_manager.config")
     public static class Config {
         public PetGear defaultModule = PetGear.PASSIVE;
 
