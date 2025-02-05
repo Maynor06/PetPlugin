@@ -1,6 +1,5 @@
 package org.Pet;
 
-import com.github.manolo8.darkbot.backpage.entities.ShipInfo;
 import com.github.manolo8.darkbot.config.types.Option;
 import com.github.manolo8.darkbot.core.manager.PetManager;
 import eu.darkbot.api.config.ConfigSetting;
@@ -9,6 +8,8 @@ import eu.darkbot.api.config.annotations.Number;
 import eu.darkbot.api.extensions.Behavior;
 import eu.darkbot.api.extensions.Configurable;
 import eu.darkbot.api.extensions.Feature;
+import eu.darkbot.api.game.entities.Npc;
+import eu.darkbot.api.managers.EntitiesAPI;
 import eu.darkbot.api.game.entities.Entity;
 import eu.darkbot.api.game.entities.Ship;
 import eu.darkbot.api.game.enums.PetGear;
@@ -16,16 +17,26 @@ import eu.darkbot.api.managers.HeroAPI;
 import eu.darkbot.api.managers.PetAPI;
 import eu.darkbot.api.utils.ItemNotEquippedException;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Feature(name = "PET Manager", description = "Manejo avanzado de módulos PET basado en la vida del jugador y la PET." )
 public class PetModule implements Behavior, Configurable<PetModule.Config> {
 
     private final HeroAPI hero;
-    private final Ship ship;
     private final PetManager petManager;
     private PetAPI petAPI;
     private Config config;
-    private PetGear lastGear;
+    private final EntitiesAPI entities;
+
+    private long lastMegaMinaUse = 0;
+    private long lastDamageModuleUse = 0;
+    private long lastLifeModuleUse = 0;
+
+    private static final long MEGA_MINA_COOLDOWN = 30000; //30 segundos
+    private static final long DAMAGE_MODULE_COOLDOWN = 20000; // 20 segundos
+    private static final long LIFE_MODULE_COOLDOWN = 25000; // 25 segundos
 
     @Configuration("pet_manager.config")
     public static class Config {
@@ -55,12 +66,50 @@ public class PetModule implements Behavior, Configurable<PetModule.Config> {
 
     }
 
-    public PetModule(HeroAPI hero, Ship ship, PetManager petManager) {
+
+
+    public PetModule(HeroAPI hero, PetManager petManager, EntitiesAPI entities, PetAPI petAPI) {
         this.hero = hero;
-        this.ship = ship;
         this.petManager = petManager;
+        this.entities = entities;
+        this.petAPI = petAPI;
     }
 
+    private void useMegaMine(long now) throws ItemNotEquippedException {
+        if(now - lastMegaMinaUse < MEGA_MINA_COOLDOWN) return ;
+
+        List<Ship> enemies = entities.getShips().stream()
+                .filter(ship -> ship.getEntityInfo().isEnemy() == true )
+                .collect(Collectors.toList());
+
+        if(enemies.size() == 8){
+            petAPI.setGear(PetGear.MEGA_MINE);
+        }
+
+    }
+
+    // usar modulo de damage
+    private void useDamageModule(long now) throws ItemNotEquippedException {
+        if(now - lastDamageModuleUse < DAMAGE_MODULE_COOLDOWN) return ;
+
+        Entity target = hero.getTarget();
+        if(target instanceof Npc ){
+            petAPI.setGear(PetGear.BEACON_COMBAT);
+        }
+    }
+
+    //usar modulo de damage
+    private void useLifeModule(long now) throws ItemNotEquippedException {
+        if(now - lastLifeModuleUse < LIFE_MODULE_COOLDOWN) return ;
+
+        Entity target = hero.getTarget();
+        if(target instanceof Npc ){
+            petAPI.setGear(PetGear.BEACON_HP);
+        }
+
+    }
+
+    // modulo defensa
     private void activeModuleDefense() throws ItemNotEquippedException {
         Entity target = hero.getTarget();
 
@@ -75,12 +124,14 @@ public class PetModule implements Behavior, Configurable<PetModule.Config> {
         }
     }
 
+    // combo module
     private void useComboModule() throws ItemNotEquippedException {
         if(config.useComboModule && hero.getHealth().hpPercent() <= config.min_Hp_Combo){
             petAPI.setGear(PetGear.COMBO_REPAIR);
         }
     }
 
+    // usar hp link
     private void useHPLink() throws ItemNotEquippedException {
         if (config.useHpLink && hero.getHealth().hpPercent() <= config.min_Hp_Link) {
             petManager.setGear(PetGear.HP_LINK);
@@ -88,27 +139,38 @@ public class PetModule implements Behavior, Configurable<PetModule.Config> {
 
     }
 
+    // use Repair Module
     private void useRepairModule() throws ItemNotEquippedException {
         if (config.useRepairModule && petAPI.getHealth().hpPercent() <= config.min_Repair_Module ) {
             petManager.setGear(PetGear.REPAIR);
         }
     }
 
+    // use Llama Expiatoria
     private void useLlamaExpiratoria() throws ItemNotEquippedException {
         if (config.useLlamaExpiratoria && getSyncPlayerHealth() <= config.min_Llama_Expiratoria ){
             petManager.setGear(PetGear.SACRIFICIAL);
         }
     }
 
+
     private void managePetModule() throws ItemNotEquippedException {
         if(!petManager.isActive() ) return;
         PetGear selectedGear = config.defaultModule;
+        long now = System.currentTimeMillis();
 
-        activeModuleDefense();
-        useComboModule();
-        useHPLink();
-        useRepairModule();
-        useLlamaExpiratoria();
+        try {
+            activeModuleDefense();
+            useComboModule();
+            useHPLink();
+            useRepairModule();
+            useLlamaExpiratoria();
+            useMegaMine(now);
+            useDamageModule(now);
+            useLifeModule(now);
+        } catch (ItemNotEquippedException e) {
+            System.out.println(e.getMessage());;
+        }
 
     }
 
@@ -116,8 +178,14 @@ public class PetModule implements Behavior, Configurable<PetModule.Config> {
         return 50;
     }
 
+
+
     @Override
     public void setConfig(ConfigSetting<Config> configSetting) {
+        if(configSetting == null){
+            System.out.println("Error: configuración de PET Manager no encontrada.");
+            return;
+        }
         this.config = configSetting.getValue();
     }
 

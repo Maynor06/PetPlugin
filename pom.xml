@@ -21,6 +21,7 @@
     </repositories>
 
     <dependencies>
+
         <dependency>
             <groupId>eu.darkbot.DarkBotAPI</groupId>
             <artifactId>darkbot-api</artifactId>
